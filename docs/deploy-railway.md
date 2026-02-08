@@ -55,6 +55,7 @@ Use the `frontend/Dockerfile` in this repo.
 
 The Nginx config is a template and reads:
 - `BACKEND_UPSTREAM` (runtime env)
+- `PORT` (Railway runtime port, injected automatically)
 
 Set:
 - `BACKEND_UPSTREAM=backend.railway.internal:8000`
