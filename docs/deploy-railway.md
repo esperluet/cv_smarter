@@ -86,6 +86,7 @@ Expose/generate a public domain only for frontend.
   - Ensure backend service is named `backend`.
   - Ensure backend listens on `PORT`.
 - Migration/startup failures:
-  - Verify `DATABASE_URL` format: `postgresql+psycopg://...`
+  - Verify `DATABASE_URL` is set.
+  - Accepted forms: `postgresql+psycopg://...`, `postgresql://...`, `postgres://...` (the app normalizes to `psycopg`).
 - Lost files after redeploy:
   - Confirm backend volume is mounted at `/data`.

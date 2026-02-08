@@ -1,4 +1,4 @@
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -60,6 +60,29 @@ class Settings(BaseSettings):
     smtp_username: str | None = Field(default=None, alias="SMTP_USERNAME")
     smtp_password: str | None = Field(default=None, alias="SMTP_PASSWORD")
     smtp_from_email: str = Field(default="noreply@cv-optimizer.local", alias="SMTP_FROM_EMAIL")
+
+    @staticmethod
+    def normalize_database_url_value(value: str) -> str:
+        if not isinstance(value, str):
+            return value
+
+        lower_value = value.lower()
+        if lower_value.startswith("postgres://"):
+            value = "postgresql://" + value[len("postgres://") :]
+            lower_value = value.lower()
+
+        if lower_value.startswith("postgresql+psycopg2://"):
+            return "postgresql+psycopg://" + value[len("postgresql+psycopg2://") :]
+
+        if lower_value.startswith("postgresql://"):
+            return "postgresql+psycopg://" + value[len("postgresql://") :]
+
+        return value
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        return cls.normalize_database_url_value(value)
 
     @model_validator(mode="after")
     def validate_security(self) -> "Settings":
