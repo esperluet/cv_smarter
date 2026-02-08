@@ -1,0 +1,70 @@
+{
+  "appName": "CV Optimizer",
+  "loading": "Loading...",
+  "auth": {
+    "title": "Welcome back",
+    "subtitle": "Manage your account and process your CV in one place.",
+    "signinTab": "Sign in",
+    "signupTab": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "signin": "Sign in",
+    "signup": "Create account"
+  },
+  "workspace": {
+    "title": "Workspace",
+    "subtitle": "Manage profile, reusable sources, and targeted CV generation.",
+    "signOut": "Sign out"
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Update your personal information.",
+    "save": "Save changes",
+    "success": "Profile updated successfully."
+  },
+  "cv": {
+    "sources": {
+      "title": "Ground Sources",
+      "description": "Upload reusable source documents once, then generate many targeted CVs from them.",
+      "nameLabel": "Source name",
+      "namePlaceholder": "Primary resume",
+      "fileLabel": "Source file",
+      "fileRequired": "Please choose a file.",
+      "uploadAction": "Upload source",
+      "uploading": "Uploading...",
+      "uploadSuccess": "Source saved successfully.",
+      "listTitle": "Your sources",
+      "loading": "Loading sources...",
+      "loadError": "Unable to load sources.",
+      "empty": "No source yet. Upload one to start.",
+      "deleteAction": "Delete",
+      "deleting": "Deleting...",
+      "deleteSuccess": "Source deleted."
+    },
+    "generation": {
+      "title": "Targeted CV Generation",
+      "description": "Select a source, paste a job description, and download a generated PDF CV.",
+      "sourceLabel": "Ground source",
+      "sourcePlaceholder": "Select a source",
+      "sourceRequired": "Please select a source.",
+      "jobDescriptionLabel": "Job description",
+      "jobDescriptionPlaceholder": "Paste the target job description here...",
+      "jobDescriptionRequired": "Job description is required.",
+      "graphIdLabel": "Graph id (optional)",
+      "graphIdPlaceholder": "cv_rewrite_v1",
+      "submitPdf": "Generate PDF",
+      "processingPdf": "Generating PDF...",
+      "noSourceHint": "Create a source first to enable generation.",
+      "downloadStarted": "PDF download started.",
+      "downloadStartedWithRun": "PDF download started. Run id: {{runId}}"
+    }
+  },
+  "errors": {
+    "required": "This field is required.",
+    "passwordMismatch": "Passwords must match.",
+    "generic": "Something went wrong."
+  }
+}

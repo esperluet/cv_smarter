@@ -1,0 +1,70 @@
+{
+  "appName": "CV Optimizer",
+  "loading": "Chargement...",
+  "auth": {
+    "title": "Bienvenue",
+    "subtitle": "Gerez votre compte et traitez votre CV au meme endroit.",
+    "signinTab": "Connexion",
+    "signupTab": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "firstName": "Prenom",
+    "lastName": "Nom",
+    "signin": "Se connecter",
+    "signup": "Creer un compte"
+  },
+  "workspace": {
+    "title": "Espace de travail",
+    "subtitle": "Gestion du profil, des sources reutilisables et generation de CV cibles.",
+    "signOut": "Se deconnecter"
+  },
+  "profile": {
+    "title": "Profil",
+    "description": "Mettez a jour vos informations personnelles.",
+    "save": "Enregistrer",
+    "success": "Profil mis a jour avec succes."
+  },
+  "cv": {
+    "sources": {
+      "title": "Sources de base",
+      "description": "Envoyez vos documents de reference une seule fois, puis reutilisez-les pour plusieurs generations.",
+      "nameLabel": "Nom de la source",
+      "namePlaceholder": "CV principal",
+      "fileLabel": "Fichier source",
+      "fileRequired": "Veuillez choisir un fichier.",
+      "uploadAction": "Ajouter la source",
+      "uploading": "Ajout en cours...",
+      "uploadSuccess": "Source enregistree avec succes.",
+      "listTitle": "Vos sources",
+      "loading": "Chargement des sources...",
+      "loadError": "Impossible de charger les sources.",
+      "empty": "Aucune source pour le moment. Ajoutez-en une pour commencer.",
+      "deleteAction": "Supprimer",
+      "deleting": "Suppression...",
+      "deleteSuccess": "Source supprimee."
+    },
+    "generation": {
+      "title": "Generation de CV cible",
+      "description": "Selectionnez une source, collez une fiche de poste et telechargez le CV en PDF.",
+      "sourceLabel": "Source de base",
+      "sourcePlaceholder": "Selectionner une source",
+      "sourceRequired": "Veuillez selectionner une source.",
+      "jobDescriptionLabel": "Description du poste",
+      "jobDescriptionPlaceholder": "Collez la description du poste cible ici...",
+      "jobDescriptionRequired": "La description du poste est obligatoire.",
+      "graphIdLabel": "Graph id (optionnel)",
+      "graphIdPlaceholder": "cv_rewrite_v1",
+      "submitPdf": "Generer le PDF",
+      "processingPdf": "Generation du PDF...",
+      "noSourceHint": "Ajoutez une source pour activer la generation.",
+      "downloadStarted": "Telechargement du PDF demarre.",
+      "downloadStartedWithRun": "Telechargement du PDF demarre. Run id : {{runId}}"
+    }
+  },
+  "errors": {
+    "required": "Ce champ est obligatoire.",
+    "passwordMismatch": "Les mots de passe doivent etre identiques.",
+    "generic": "Une erreur est survenue."
+  }
+}
