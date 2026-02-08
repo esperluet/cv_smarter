@@ -1,0 +1,86 @@
+# Railway Deployment Guide
+
+This project is a monorepo with two deployable services:
+- `backend` (FastAPI, private service)
+- `frontend` (Nginx + React static assets, public service)
+
+It also needs one managed PostgreSQL service.
+
+## 1. Create the Railway project
+
+1. Create a new project from your GitHub repo.
+2. Add three services:
+   - `backend` (source root: `backend`)
+   - `frontend` (source root: `frontend`)
+   - `PostgreSQL` (managed Railway database)
+
+## 2. Backend service setup
+
+Use the `backend/Dockerfile` in this repo.
+
+- Container command already runs migrations then starts the API:
+  - `alembic upgrade head && uvicorn ... --port ${PORT:-8000}`
+- Healthcheck path:
+  - `/health`
+
+Set backend environment variables using `backend/.env.railway.example` as template.
+
+Minimum required:
+- `APP_ENV=production`
+- `DATABASE_URL=postgresql+psycopg://...` (from Railway Postgres variables)
+- `JWT_SECRET_KEY=<strong secret>`
+- `SECURITY_STRICT_MODE=true`
+- `ARTIFACT_DOWNLOAD_MODE=signed`
+- `UPLOAD_DIR=/data/uploads`
+- `ARTIFACT_DIR=/data/artifacts`
+- `CV_GENERATION_TRACE_DIR=/data/traces`
+
+## 3. Add a persistent volume to backend
+
+Attach one Railway volume to backend mounted at `/data`.
+
+This persists:
+- uploads
+- artifacts
+- traces
+
+## 4. Frontend service setup
+
+Use the `frontend/Dockerfile` in this repo.
+
+The Nginx config is a template and reads:
+- `BACKEND_UPSTREAM` (runtime env)
+
+Set:
+- `BACKEND_UPSTREAM=backend.railway.internal:8000`
+
+Healthcheck path:
+- `/`
+
+Expose/generate a public domain only for frontend.
+
+## 5. Service visibility
+
+- `backend`: keep private (no public domain required).
+- `frontend`: public domain enabled.
+
+`/api/*` requests from frontend are proxied internally to backend.
+
+## 6. Verify after deployment
+
+1. Open frontend domain.
+2. Sign up and sign in.
+3. Upload a ground source.
+4. Generate CV/PDF.
+5. Download document artifacts.
+
+## 7. Common issues
+
+- 502 on `/api/*`:
+  - Check `BACKEND_UPSTREAM` in frontend service.
+  - Ensure backend service is named `backend`.
+  - Ensure backend listens on `PORT`.
+- Migration/startup failures:
+  - Verify `DATABASE_URL` format: `postgresql+psycopg://...`
+- Lost files after redeploy:
+  - Confirm backend volume is mounted at `/data`.
