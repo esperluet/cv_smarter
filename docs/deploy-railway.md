@@ -20,6 +20,11 @@ Use the `backend/Dockerfile` in this repo.
 
 - Container command already runs migrations then starts the API:
   - `alembic upgrade head && uvicorn ... --port ${PORT:-8000}`
+- Railway settings to avoid import/startup issues:
+  - Service source root must be `backend`
+  - Keep Railway "Start Command" empty (so Dockerfile `CMD` is used)
+  - If you must override Start Command, use:
+    - `cd /app && PYTHONPATH=/app alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`
 - Healthcheck path:
   - `/health`
 
