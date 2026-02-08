@@ -54,11 +54,13 @@ This persists:
 Use the `frontend/Dockerfile` in this repo.
 
 The Nginx config is a template and reads:
-- `BACKEND_UPSTREAM` (runtime env)
+- `BACKEND_HOST` (runtime env)
+- `BACKEND_PORT` (runtime env)
 - `PORT` (Railway runtime port, injected automatically)
 
 Set:
-- `BACKEND_UPSTREAM=${{backend.RAILWAY_PRIVATE_DOMAIN}}:${{backend.PORT}}`
+- `BACKEND_HOST=${{backend.RAILWAY_PRIVATE_DOMAIN}}`
+- `BACKEND_PORT=${{backend.PORT}}`
   - Replace `backend` with your exact backend service name in Railway.
   - This keeps frontend->backend internal routing aligned with the backend's actual host/port.
 
@@ -85,8 +87,8 @@ Expose/generate a public domain only for frontend.
 ## 7. Common issues
 
 - 502 on `/api/*`:
-  - Check `BACKEND_UPSTREAM` in frontend service.
-  - Ensure the service reference name in `BACKEND_UPSTREAM` matches your backend service name.
+  - Check `BACKEND_HOST` and `BACKEND_PORT` in frontend service.
+  - Ensure the service reference name in these vars matches your backend service name.
   - Ensure backend is healthy and listening on its Railway `PORT`.
 - Migration/startup failures:
   - Verify `DATABASE_URL` is set.
