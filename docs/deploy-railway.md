@@ -58,7 +58,9 @@ The Nginx config is a template and reads:
 - `PORT` (Railway runtime port, injected automatically)
 
 Set:
-- `BACKEND_UPSTREAM=backend.railway.internal:8000`
+- `BACKEND_UPSTREAM=${{backend.RAILWAY_PRIVATE_DOMAIN}}:${{backend.PORT}}`
+  - Replace `backend` with your exact backend service name in Railway.
+  - This keeps frontend->backend internal routing aligned with the backend's actual host/port.
 
 Healthcheck path:
 - `/`
@@ -84,8 +86,8 @@ Expose/generate a public domain only for frontend.
 
 - 502 on `/api/*`:
   - Check `BACKEND_UPSTREAM` in frontend service.
-  - Ensure backend service is named `backend`.
-  - Ensure backend listens on `PORT`.
+  - Ensure the service reference name in `BACKEND_UPSTREAM` matches your backend service name.
+  - Ensure backend is healthy and listening on its Railway `PORT`.
 - Migration/startup failures:
   - Verify `DATABASE_URL` is set.
   - Accepted forms: `postgresql+psycopg://...`, `postgresql://...`, `postgres://...` (the app normalizes to `psycopg`).
