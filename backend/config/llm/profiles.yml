@@ -1,0 +1,32 @@
+xversion: "1"
+
+llm_profiles:
+  orientation_fast:
+    provider: deepseek_default
+    model: deepseek-chat
+    temperature: 0.0
+    max_tokens: 4500
+
+  ats_writer:
+    provider: deepseek_default
+    model: deepseek-chat
+    temperature: 0.2
+    max_tokens: 4500
+
+  recruiter_writer:
+    provider: deepseek_default
+    model: deepseek-chat
+    temperature: 0.3
+    max_tokens: 4500
+
+  technical_writer:
+    provider: deepseek_default
+    model: deepseek-chat
+    temperature: 0.2
+    max_tokens: 4500
+
+  final_writer:
+    provider: deepseek_default
+    model: deepseek-chat
+    temperature: 0.1
+    max_tokens: 4500

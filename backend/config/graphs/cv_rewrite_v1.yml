@@ -1,0 +1,36 @@
+graph_id: cv_rewrite_v1
+version: "1"
+orientation_stage_id: determine_orientation
+final_stage_id: final_render
+
+stages:
+  - id: determine_orientation
+    role: orientation
+    prompt_id: cv_rewrite_v1/determine_orientation
+    llm_profile: orientation_fast
+    response_format: json
+    update_latest_cv: false
+
+  - id: ats_pass
+    role: rewrite
+    prompt_id: cv_rewrite_v1/ats_pass
+    llm_profile: ats_writer
+    response_format: text
+
+  - id: recruiter_pass
+    role: rewrite
+    prompt_id: cv_rewrite_v1/recruiter_pass
+    llm_profile: recruiter_writer
+    response_format: text
+
+  - id: technical_pass
+    role: rewrite
+    prompt_id: cv_rewrite_v1/technical_pass
+    llm_profile: technical_writer
+    response_format: text
+
+  - id: final_render
+    role: final
+    prompt_id: cv_rewrite_v1/final_render
+    llm_profile: final_writer
+    response_format: text

@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cv_optimizer_postgres
+    environment:
+      POSTGRES_DB: cv_optimizer
+      POSTGRES_USER: cv_optimizer
+      POSTGRES_PASSWORD: cv_optimizer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cv_optimizer -d cv_optimizer"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  adminer:
+    image: adminer:5.3.0
+    container_name: cv_optimizer_adminer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: cv_optimizer_mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: cv_optimizer_backend
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      APP_ENV: development
+      UPLOAD_DIR: /app/uploads
+      MAX_UPLOAD_SIZE_BYTES: 10485760
+      DATABASE_URL: postgresql+psycopg://cv_optimizer:cv_optimizer@postgres:5432/cv_optimizer
+      JWT_SECRET_KEY: dev-only-change-before-production
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      PYTHONPATH: /app
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_USE_TLS: "false"
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM_EMAIL: noreply@cv-optimizer.local
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: cv_optimizer_frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
+  backend_uploads:

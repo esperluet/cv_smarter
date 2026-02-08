@@ -1,0 +1,23 @@
+fastapi==0.128.0
+uvicorn[standard]==0.38.0
+python-multipart==0.0.20
+SQLAlchemy==2.0.43
+PyJWT==2.10.1
+pydantic-settings==2.10.1
+email-validator==2.3.0
+psycopg[binary]==3.2.9
+alembic==1.16.4
+pytest==8.4.2
+httpx==0.28.1
+PyYAML==6.0.2
+markdown==3.8.2
+fpdf2==2.8.4
+langgraph>=0.2,<0.4
+langchain>=0.3,<0.4
+langchain-openai>=0.2,<0.4
+langchain-anthropic>=0.2,<0.4
+langchain-deepseek>=0.1,<0.2
+--extra-index-url https://download.pytorch.org/whl/cpu
+docling==2.56.0
+torch==2.10.0+cpu ; platform_system == "Linux"
+torchvision==0.25.0+cpu ; platform_system == "Linux"

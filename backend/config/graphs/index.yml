@@ -1,0 +1,6 @@
+version: "1"
+default_graph_id: cv_rewrite_v1
+
+graphs:
+  cv_rewrite_v1:
+    file: cv_rewrite_v1.yml

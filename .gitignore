@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.py[cod]
+backend/uploads/*
+backend/artifacts/*
+backend/traces/*
+backend/app.db
+frontend/dist/
+frontend/node_modules/
