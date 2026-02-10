@@ -9,7 +9,7 @@ from app.domain.services.file_storage import FileTooLargeError
 
 class LocalFileStorage:
     def __init__(self, upload_dir: str, chunk_size: int = 1024 * 1024) -> None:
-        self._upload_dir = Path(upload_dir)
+        self._upload_dir = Path(upload_dir).resolve()
         self._chunk_size = chunk_size
         self._upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -58,4 +58,12 @@ class LocalFileStorage:
         return sanitized or "uploaded_file"
 
     def delete(self, *, storage_path: str) -> None:
-        Path(storage_path).unlink(missing_ok=True)
+        try:
+            resolved_path = Path(storage_path).resolve()
+        except OSError:
+            return
+
+        if self._upload_dir != resolved_path and self._upload_dir not in resolved_path.parents:
+            return
+
+        resolved_path.unlink(missing_ok=True)

@@ -20,6 +20,10 @@ from app.infrastructure.repositories.sqlalchemy_ground_source_repository import 
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 
 
+def get_upload_storage() -> LocalFileStorage:
+    return LocalFileStorage(upload_dir=settings.upload_dir)
+
+
 def get_ground_source_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> SQLAlchemyGroundSourceRepository:
@@ -29,10 +33,11 @@ def get_ground_source_repository(
 def get_create_ground_source_use_case(
     sources: Annotated[SQLAlchemyGroundSourceRepository, Depends(get_ground_source_repository)],
     document_pipeline: Annotated[ProcessDocumentPipelineUseCase, Depends(get_document_pipeline_use_case)],
+    storage: Annotated[LocalFileStorage, Depends(get_upload_storage)],
 ) -> CreateGroundSourceUseCase:
     return CreateGroundSourceUseCase(
         sources=sources,
-        storage=LocalFileStorage(upload_dir=settings.upload_dir),
+        storage=storage,
         max_upload_size_bytes=settings.max_upload_size_bytes,
         document_pipeline=document_pipeline,
         preserve_failed_uploads=settings.preserve_failed_uploads,
@@ -47,8 +52,9 @@ def get_list_ground_sources_use_case(
 
 def get_delete_ground_source_use_case(
     sources: Annotated[SQLAlchemyGroundSourceRepository, Depends(get_ground_source_repository)],
+    storage: Annotated[LocalFileStorage, Depends(get_upload_storage)],
 ) -> DeleteGroundSourceUseCase:
-    return DeleteGroundSourceUseCase(sources=sources)
+    return DeleteGroundSourceUseCase(sources=sources, storage=storage)
 
 
 def get_generate_from_source_use_case(
