@@ -15,7 +15,6 @@ from app.application.errors import (
     LowQualityExtractionError,
     MissingFileNameError,
     RenderingFailedError,
-    UnsupportedFileTypeError,
     UploadedFileTooLargeError,
 )
 from app.application.use_cases.process_cv_upload import ProcessCVUploadUseCase
@@ -36,12 +35,10 @@ def upload_cv(
         analysis = use_case.execute(filename=file.filename, content_type=file.content_type, stream=file.file)
     except MissingFileNameError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    except UnsupportedFileTypeError as exc:
-        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(exc)) from exc
     except UploadedFileTooLargeError as exc:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
     except IngestorNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(exc)) from exc
     except (IngestionFailedError, LowQualityExtractionError, RenderingFailedError) as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
     except ArtifactPersistenceError as exc:

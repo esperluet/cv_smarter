@@ -1,0 +1,90 @@
+name: Deploy Railway
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-railway-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: deploy-railway
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'))
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_ENVIRONMENT_NAME: ${{ secrets.RAILWAY_ENVIRONMENT_NAME }}
+      RAILWAY_BACKEND_SERVICE_ID: ${{ secrets.RAILWAY_BACKEND_SERVICE_ID }}
+      RAILWAY_FRONTEND_SERVICE_ID: ${{ secrets.RAILWAY_FRONTEND_SERVICE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Validate Railway secrets
+        id: validate-secrets
+        shell: bash
+        run: |
+          missing=()
+
+          if [ -z "${RAILWAY_TOKEN}" ]; then missing+=("RAILWAY_TOKEN"); fi
+          if [ -z "${RAILWAY_PROJECT_ID}" ]; then missing+=("RAILWAY_PROJECT_ID"); fi
+          if [ -z "${RAILWAY_ENVIRONMENT_NAME}" ]; then missing+=("RAILWAY_ENVIRONMENT_NAME"); fi
+          if [ -z "${RAILWAY_BACKEND_SERVICE_ID}" ]; then missing+=("RAILWAY_BACKEND_SERVICE_ID"); fi
+          if [ -z "${RAILWAY_FRONTEND_SERVICE_ID}" ]; then missing+=("RAILWAY_FRONTEND_SERVICE_ID"); fi
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "configured=false" >> "${GITHUB_OUTPUT}"
+            echo "Missing Railway secrets: ${missing[*]}"
+            exit 0
+          fi
+
+          echo "configured=true" >> "${GITHUB_OUTPUT}"
+          echo "Railway secrets validated."
+
+      - name: Setup Node
+        if: steps.validate-secrets.outputs.configured == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Railway CLI
+        if: steps.validate-secrets.outputs.configured == 'true'
+        run: npm install --global @railway/cli
+
+      - name: Deploy backend service
+        if: steps.validate-secrets.outputs.configured == 'true'
+        working-directory: backend
+        run: >
+          railway up --ci --detach
+          --project "${RAILWAY_PROJECT_ID}"
+          --environment "${RAILWAY_ENVIRONMENT_NAME}"
+          --service "${RAILWAY_BACKEND_SERVICE_ID}"
+
+      - name: Deploy frontend service
+        if: steps.validate-secrets.outputs.configured == 'true'
+        working-directory: frontend
+        run: >
+          railway up --ci --detach
+          --project "${RAILWAY_PROJECT_ID}"
+          --environment "${RAILWAY_ENVIRONMENT_NAME}"
+          --service "${RAILWAY_FRONTEND_SERVICE_ID}"
+
+      - name: Deployment skipped
+        if: steps.validate-secrets.outputs.configured != 'true'
+        run: echo "Skipping deployment because Railway secrets are not fully configured."

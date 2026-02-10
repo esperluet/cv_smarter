@@ -5,7 +5,6 @@ SQLAlchemy==2.0.43
 PyJWT==2.10.1
 pydantic-settings==2.10.1
 email-validator==2.3.0
-psycopg[binary]==3.2.9
 alembic==1.16.4
 pytest==8.4.2
 httpx==0.28.1
@@ -17,7 +16,3 @@ langchain>=0.3,<0.4
 langchain-openai>=0.2,<0.4
 langchain-anthropic>=0.2,<0.4
 langchain-deepseek>=0.1,<0.2
---extra-index-url https://download.pytorch.org/whl/cpu
-docling==2.56.0
-torch==2.10.0+cpu ; platform_system == "Linux"
-torchvision==0.25.0+cpu ; platform_system == "Linux"

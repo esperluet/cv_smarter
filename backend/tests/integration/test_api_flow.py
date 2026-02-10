@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from importlib.util import find_spec
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -28,12 +29,14 @@ class DummyMailer:
 def test_auth_account_and_cv_upload_flow(tmp_path) -> None:
     db_file = tmp_path / "test.db"
     upload_dir = tmp_path / "uploads"
+    artifact_dir = tmp_path / "artifacts"
     prompts_dir = tmp_path / "prompts" / "cv_rewrite_v1"
     config_dir = tmp_path / "config"
     llm_config_dir = config_dir / "llm"
     graphs_config_dir = config_dir / "graphs"
     traces_dir = tmp_path / "traces"
     upload_dir.mkdir(parents=True, exist_ok=True)
+    artifact_dir.mkdir(parents=True, exist_ok=True)
     prompts_dir.mkdir(parents=True, exist_ok=True)
     llm_config_dir.mkdir(parents=True, exist_ok=True)
     graphs_config_dir.mkdir(parents=True, exist_ok=True)
@@ -127,6 +130,7 @@ stages:
     Base.metadata.create_all(bind=test_engine)
 
     settings.upload_dir = str(upload_dir)
+    settings.artifact_dir = str(artifact_dir)
     settings.max_upload_size_bytes = 1024 * 1024
     settings.document_output_formats = "markdown,json"
     settings.document_ingestor_preferred = "fallback"
@@ -217,6 +221,8 @@ stages:
         source_create_payload = source_create_response.json()
         assert source_create_payload["name"] == "Primary Resume"
         source_id = source_create_payload["id"]
+        source_storage_path = source_create_payload["storage_path"]
+        assert Path(source_storage_path).is_file()
 
         source_list_response = client.get(
             "/api/v1/sources",
@@ -290,20 +296,28 @@ stages:
         )
         assert pdf_process_response.status_code in {415, 422}
 
+        unsupported_cv_upload_response = client.post(
+            "/api/v1/cv/upload",
+            files={"file": ("payload.bin", b"\x00\x01", "application/octet-stream")},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert unsupported_cv_upload_response.status_code == 415
+
+        export_pdf_response = client.post(
+            "/api/v1/cv/export/pdf",
+            json={
+                "content": "# Resume\n\n- Item",
+                "format_hint": "markdown",
+                "filename": "resume_export",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert export_pdf_response.status_code == 200
+        assert export_pdf_response.headers["content-type"].startswith("application/pdf")
+        assert "filename=\"resume_export.pdf\"" in export_pdf_response.headers.get("content-disposition", "")
+        assert export_pdf_response.content.startswith(b"%PDF")
+
         if find_spec("langgraph") is not None:
-            export_pdf_response = client.post(
-                "/api/v1/cv/export/pdf",
-                json={
-                    "content": "# Resume\n\n- Item",
-                    "format_hint": "markdown",
-                    "filename": "resume_export",
-                },
-                headers={"Authorization": f"Bearer {token}"},
-            )
-            assert export_pdf_response.status_code == 200
-            assert export_pdf_response.headers["content-type"].startswith("application/pdf")
-            assert "filename=\"resume_export.pdf\"" in export_pdf_response.headers.get("content-disposition", "")
-            assert export_pdf_response.content.startswith(b"%PDF")
 
             generate_response = client.post(
                 "/api/v1/cv/generate",
@@ -355,6 +369,7 @@ stages:
             headers={"Authorization": f"Bearer {token}"},
         )
         assert source_delete_response.status_code == 204
+        assert not Path(source_storage_path).exists()
 
     app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=test_engine)

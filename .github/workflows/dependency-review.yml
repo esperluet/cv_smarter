@@ -1,0 +1,56 @@
+name: Dependency Review
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: dependency-review-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect dependency review support
+        id: detect-support
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.request("GET /repos/{owner}/{repo}/dependency-graph/sbom", {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              core.setOutput("supported", "true");
+              core.info("Dependency review is supported for this repository.");
+            } catch (error) {
+              core.setOutput("supported", "false");
+              core.warning(
+                `Dependency review not available for this repository: ${error.status || "unknown"} ${error.message}`
+              );
+            }
+
+      - name: Review dependency changes
+        if: github.event_name == 'pull_request' && steps.detect-support.outputs.supported == 'true'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+
+      - name: Dependency review skipped
+        if: github.event_name == 'pull_request' && steps.detect-support.outputs.supported != 'true'
+        run: echo "Dependency review is not supported or not enabled for this repository. Skipping check."
+
+      - name: Merge queue pass-through
+        if: github.event_name != 'pull_request'
+        run: echo "Dependency review runs on pull_request before merge queue."

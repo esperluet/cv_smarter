@@ -46,6 +46,11 @@ class FakeStorage:
         self.deleted_paths.append(storage_path)
 
 
+class FailingCleanupStorage:
+    def delete(self, *, storage_path: str) -> None:
+        raise RuntimeError("cleanup failed")
+
+
 class FakePipeline:
     def execute(self, *, source_document, output_formats):
         assert output_formats == ()
@@ -265,10 +270,49 @@ def test_list_ground_sources_for_user() -> None:
 
 
 def test_delete_ground_source_not_found() -> None:
-    use_case = DeleteGroundSourceUseCase(sources=FakeSourceRepository())
+    use_case = DeleteGroundSourceUseCase(sources=FakeSourceRepository(), storage=FakeStorage())
 
     with pytest.raises(GroundSourceNotFoundError):
         use_case.execute(user_id="user_1", source_id="missing")
+
+
+def test_delete_ground_source_success_deletes_uploaded_file() -> None:
+    repository = FakeSourceRepository()
+    source = repository.create(
+        user_id="user_1",
+        name="Source A",
+        original_filename="a.txt",
+        content_type="text/plain",
+        size_bytes=1,
+        storage_path="/tmp/a.txt",
+        canonical_text="A",
+        content_hash="h1",
+    )
+    storage = FakeStorage()
+    use_case = DeleteGroundSourceUseCase(sources=repository, storage=storage)
+
+    use_case.execute(user_id="user_1", source_id=source.id)
+
+    assert repository.get_for_user(source_id=source.id, user_id="user_1") is None
+    assert storage.deleted_paths == ["/tmp/a.txt"]
+
+
+def test_delete_ground_source_keeps_success_when_file_cleanup_fails() -> None:
+    repository = FakeSourceRepository()
+    source = repository.create(
+        user_id="user_1",
+        name="Source A",
+        original_filename="a.txt",
+        content_type="text/plain",
+        size_bytes=1,
+        storage_path="/tmp/a.txt",
+        canonical_text="A",
+        content_hash="h1",
+    )
+    use_case = DeleteGroundSourceUseCase(sources=repository, storage=FailingCleanupStorage())
+
+    use_case.execute(user_id="user_1", source_id=source.id)
+    assert repository.get_for_user(source_id=source.id, user_id="user_1") is None
 
 
 def test_generate_targeted_cv_from_source_success() -> None:

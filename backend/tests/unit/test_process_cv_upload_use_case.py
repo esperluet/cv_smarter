@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from app.application.errors import MissingFileNameError, UnsupportedFileTypeError, UploadedFileTooLargeError
+from app.application.errors import IngestorNotFoundError, MissingFileNameError, UploadedFileTooLargeError
 from app.application.use_cases.process_cv_upload import ProcessCVUploadUseCase
 from app.domain.services.file_storage import FileTooLargeError
 
@@ -43,6 +43,11 @@ class FailingAnalyzer:
         raise RuntimeError("analysis failed")
 
 
+class RejectingPipeline:
+    def execute(self, *, source_document, output_formats):
+        raise IngestorNotFoundError("No ingestor registered for media type: application/octet-stream")
+
+
 def test_upload_use_case_success() -> None:
     use_case = ProcessCVUploadUseCase(storage=FakeStorage(), analyzer=FakeAnalyzer(), max_upload_size_bytes=1024)
 
@@ -66,11 +71,18 @@ def test_upload_use_case_missing_filename() -> None:
         use_case.execute(filename=None, content_type="text/plain", stream=BytesIO(b"x"))
 
 
-def test_upload_use_case_unsupported_content_type() -> None:
-    use_case = ProcessCVUploadUseCase(storage=FakeStorage(), analyzer=FakeAnalyzer(), max_upload_size_bytes=1024)
+def test_upload_use_case_surfaces_pipeline_unsupported_content_type() -> None:
+    storage = FakeStorage()
+    use_case = ProcessCVUploadUseCase(
+        storage=storage,
+        analyzer=FakeAnalyzer(),
+        max_upload_size_bytes=1024,
+        document_pipeline=RejectingPipeline(),
+    )
 
-    with pytest.raises(UnsupportedFileTypeError):
+    with pytest.raises(IngestorNotFoundError):
         use_case.execute(filename="resume.exe", content_type="application/octet-stream", stream=BytesIO(b"x"))
+    assert storage.deleted_paths == ["/tmp/fake.txt"]
 
 
 def test_upload_use_case_too_large() -> None:

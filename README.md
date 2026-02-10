@@ -66,6 +66,7 @@ docker compose exec -T backend python -c "import docling; print('docling_ok')"
 
 ## Railway Deployment
 - Deployment guide: `docs/deploy-railway.md`
+- GitHub Actions CI/CD guide: `docs/github-actions-ci-cd.md`
 - Recommended topology in one Railway project:
   - Service `backend` (private)
   - Service `frontend` (public)
@@ -110,7 +111,7 @@ docker compose exec -T backend python -c "import docling; print('docling_ok')"
 - Artifact download hardening: `ARTIFACT_DOWNLOAD_MODE` (`auto` by default), `ARTIFACT_DOWNLOAD_TOKEN_TTL_SECONDS` (`300` by default)
 - Optional strict override: `SECURITY_STRICT_MODE` (defaults to strict outside dev-like envs)
 - LLM providers are configured through LangChain-compatible kinds: `mock`, `langchain_openai`, `langchain_openai_compatible`, `langchain_anthropic`, `langchain_deepseek`
-- Frontend refresh token storage mode: `VITE_REFRESH_TOKEN_STORAGE` (`local` or `session`, default `local`)
+- Frontend refresh token storage mode: `VITE_REFRESH_TOKEN_STORAGE` (`local` or `session`, default `session`)
 
 ## Example JSON Response
 ```json
