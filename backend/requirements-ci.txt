@@ -11,7 +11,7 @@ httpx==0.28.1
 PyYAML==6.0.2
 markdown==3.8.2
 fpdf2==2.8.4
-langgraph>=0.2,<0.4
+langgraph>=0.6,<0.7
 langchain>=0.3,<0.4
 langchain-openai>=0.2,<0.4
 langchain-anthropic>=0.2,<0.4
