@@ -29,12 +29,14 @@ class DummyMailer:
 def test_auth_account_and_cv_upload_flow(tmp_path) -> None:
     db_file = tmp_path / "test.db"
     upload_dir = tmp_path / "uploads"
+    artifact_dir = tmp_path / "artifacts"
     prompts_dir = tmp_path / "prompts" / "cv_rewrite_v1"
     config_dir = tmp_path / "config"
     llm_config_dir = config_dir / "llm"
     graphs_config_dir = config_dir / "graphs"
     traces_dir = tmp_path / "traces"
     upload_dir.mkdir(parents=True, exist_ok=True)
+    artifact_dir.mkdir(parents=True, exist_ok=True)
     prompts_dir.mkdir(parents=True, exist_ok=True)
     llm_config_dir.mkdir(parents=True, exist_ok=True)
     graphs_config_dir.mkdir(parents=True, exist_ok=True)
@@ -128,6 +130,7 @@ stages:
     Base.metadata.create_all(bind=test_engine)
 
     settings.upload_dir = str(upload_dir)
+    settings.artifact_dir = str(artifact_dir)
     settings.max_upload_size_bytes = 1024 * 1024
     settings.document_output_formats = "markdown,json"
     settings.document_ingestor_preferred = "fallback"

@@ -23,6 +23,9 @@ jobs:
       APP_ENV: test
       DATABASE_URL: sqlite:///./ci_test.db
       JWT_SECRET_KEY: ci-test-secret-key-at-least-24-characters
+      UPLOAD_DIR: ./uploads
+      ARTIFACT_DIR: ./artifacts
+      CV_GENERATION_TRACE_DIR: ./traces
     steps:
       - name: Checkout
         uses: actions/checkout@v4
