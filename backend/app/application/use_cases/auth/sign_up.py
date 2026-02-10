@@ -1,7 +1,6 @@
 from app.application.dto.auth_result import AuthResult
 from app.application.errors import EmailAlreadyExistsError
 from app.core.security import expires_at_from_days
-from app.core.settings import settings
 from app.domain.repositories.auth_registration_repository import AuthRegistrationRepository, DuplicateEmailError
 from app.domain.services.mailer import Mailer
 from app.domain.services.password_hasher import PasswordHasher
@@ -15,11 +14,15 @@ class SignUpUseCase:
         password_hasher: PasswordHasher,
         token_service: TokenService,
         mailer: Mailer,
+        refresh_token_expire_days: int,
+        access_token_expire_minutes: int,
     ) -> None:
         self._registration = registration
         self._password_hasher = password_hasher
         self._token_service = token_service
         self._mailer = mailer
+        self._refresh_token_expire_days = refresh_token_expire_days
+        self._access_token_expire_minutes = access_token_expire_minutes
 
     def execute(self, email: str, password: str, first_name: str | None, last_name: str | None) -> AuthResult:
         normalized_email = email.strip().lower()
@@ -27,7 +30,7 @@ class SignUpUseCase:
 
         refresh_token = self._token_service.generate_refresh_token()
         refresh_token_hash = self._token_service.hash_refresh_token(refresh_token)
-        refresh_expires_at = expires_at_from_days(settings.refresh_token_expire_days)
+        refresh_expires_at = expires_at_from_days(self._refresh_token_expire_days)
         try:
             user = self._registration.register_user_with_refresh_session(
                 email=normalized_email,
@@ -52,5 +55,5 @@ class SignUpUseCase:
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in_seconds=settings.access_token_expire_minutes * 60,
+            expires_in_seconds=self._access_token_expire_minutes * 60,
         )

@@ -6,6 +6,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.application.use_cases.auth.refresh_session import RefreshSessionUseCase
+from app.application.use_cases.auth.sign_in import SignInUseCase
+from app.application.use_cases.auth.sign_out import SignOutUseCase
+from app.application.use_cases.auth.sign_up import SignUpUseCase
 from app.core.database import get_db_session
 from app.core.settings import settings
 from app.infrastructure.mailer.smtp_mailer import SMTPMailer
@@ -63,6 +67,59 @@ def get_mailer() -> SMTPMailer:
         password=settings.smtp_password,
         use_tls=settings.smtp_use_tls,
     )
+
+
+def get_sign_up_use_case(
+    registration: Annotated[SQLAlchemyAuthRegistrationRepository, Depends(get_auth_registration_repository)],
+    password_hasher: Annotated[PBKDF2PasswordHasher, Depends(get_password_hasher)],
+    token_service: Annotated[JWTTokenService, Depends(get_token_service)],
+    mailer: Annotated[SMTPMailer, Depends(get_mailer)],
+) -> SignUpUseCase:
+    return SignUpUseCase(
+        registration=registration,
+        password_hasher=password_hasher,
+        token_service=token_service,
+        mailer=mailer,
+        refresh_token_expire_days=settings.refresh_token_expire_days,
+        access_token_expire_minutes=settings.access_token_expire_minutes,
+    )
+
+
+def get_sign_in_use_case(
+    users: Annotated[SQLAlchemyUserRepository, Depends(get_user_repository)],
+    sessions: Annotated[SQLAlchemyRefreshSessionRepository, Depends(get_refresh_session_repository)],
+    password_hasher: Annotated[PBKDF2PasswordHasher, Depends(get_password_hasher)],
+    token_service: Annotated[JWTTokenService, Depends(get_token_service)],
+) -> SignInUseCase:
+    return SignInUseCase(
+        users=users,
+        sessions=sessions,
+        password_hasher=password_hasher,
+        token_service=token_service,
+        refresh_token_expire_days=settings.refresh_token_expire_days,
+        access_token_expire_minutes=settings.access_token_expire_minutes,
+    )
+
+
+def get_refresh_session_use_case(
+    users: Annotated[SQLAlchemyUserRepository, Depends(get_user_repository)],
+    sessions: Annotated[SQLAlchemyRefreshSessionRepository, Depends(get_refresh_session_repository)],
+    token_service: Annotated[JWTTokenService, Depends(get_token_service)],
+) -> RefreshSessionUseCase:
+    return RefreshSessionUseCase(
+        users=users,
+        sessions=sessions,
+        token_service=token_service,
+        refresh_token_expire_days=settings.refresh_token_expire_days,
+        access_token_expire_minutes=settings.access_token_expire_minutes,
+    )
+
+
+def get_sign_out_use_case(
+    sessions: Annotated[SQLAlchemyRefreshSessionRepository, Depends(get_refresh_session_repository)],
+    token_service: Annotated[JWTTokenService, Depends(get_token_service)],
+) -> SignOutUseCase:
+    return SignOutUseCase(sessions=sessions, token_service=token_service)
 
 
 def get_current_user(

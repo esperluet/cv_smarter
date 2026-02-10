@@ -83,6 +83,8 @@ def test_sign_up_sends_welcome_email() -> None:
         password_hasher=FakePasswordHasher(),
         token_service=FakeTokenService(),
         mailer=mailer,
+        refresh_token_expire_days=7,
+        access_token_expire_minutes=15,
     )
 
     result = use_case.execute(
@@ -103,6 +105,8 @@ def test_sign_up_does_not_fail_if_mailer_fails() -> None:
         password_hasher=FakePasswordHasher(),
         token_service=FakeTokenService(),
         mailer=FakeMailer(should_fail=True),
+        refresh_token_expire_days=7,
+        access_token_expire_minutes=15,
     )
 
     result = use_case.execute(
@@ -121,6 +125,8 @@ def test_sign_up_maps_duplicate_email_to_application_error() -> None:
         password_hasher=FakePasswordHasher(),
         token_service=FakeTokenService(),
         mailer=FakeMailer(),
+        refresh_token_expire_days=7,
+        access_token_expire_minutes=15,
     )
 
     with pytest.raises(EmailAlreadyExistsError):
