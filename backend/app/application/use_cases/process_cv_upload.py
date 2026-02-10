@@ -1,23 +1,11 @@
 from typing import BinaryIO
 
-from app.application.errors import MissingFileNameError, UnsupportedFileTypeError, UploadedFileTooLargeError
+from app.application.errors import MissingFileNameError, UploadedFileTooLargeError
 from app.application.use_cases.process_document_pipeline import ProcessDocumentPipelineUseCase
 from app.domain.models.cv_analysis import CVAnalysis
 from app.domain.models.document_pipeline import InputDocument
 from app.domain.services.cv_analyzer import CVAnalyzer
 from app.domain.services.file_storage import FileStorage, FileTooLargeError
-
-
-ALLOWED_CONTENT_TYPES = {
-    "application/pdf",
-    "text/plain",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "image/png",
-    "image/jpeg",
-    "image/webp",
-    "image/tiff",
-}
 
 
 class ProcessCVUploadUseCase:
@@ -42,8 +30,6 @@ class ProcessCVUploadUseCase:
             raise MissingFileNameError("Missing file name")
 
         normalized_content_type = content_type or "application/octet-stream"
-        if normalized_content_type not in ALLOWED_CONTENT_TYPES:
-            raise UnsupportedFileTypeError("Unsupported file type")
 
         try:
             stored_file = self._storage.save_from_stream(
