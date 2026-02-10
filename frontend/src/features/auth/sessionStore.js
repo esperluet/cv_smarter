@@ -1,5 +1,5 @@
 const REFRESH_TOKEN_KEY = "cv_optimizer_refresh_token";
-const STORAGE_MODE = import.meta.env.VITE_REFRESH_TOKEN_STORAGE === "session" ? "session" : "local";
+const STORAGE_MODE = import.meta.env.VITE_REFRESH_TOKEN_STORAGE === "local" ? "local" : "session";
 
 let inMemoryToken = "";
 
