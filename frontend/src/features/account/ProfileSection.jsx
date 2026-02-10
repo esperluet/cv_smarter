@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,7 @@ export default function ProfileSection() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { isSubmitting },
   } = useForm({
     defaultValues: {
@@ -23,6 +24,13 @@ export default function ProfileSection() {
       last_name: user?.last_name || "",
     },
   });
+
+  useEffect(() => {
+    reset({
+      first_name: user?.first_name || "",
+      last_name: user?.last_name || "",
+    });
+  }, [user, reset]);
 
   async function onSubmit(values) {
     setMessage("");
@@ -34,6 +42,9 @@ export default function ProfileSection() {
     }
     if (values.last_name !== (user?.last_name || "")) {
       updates.last_name = values.last_name || null;
+    }
+    if (Object.keys(updates).length === 0) {
+      return;
     }
 
     const result = await updateMe(updates);
