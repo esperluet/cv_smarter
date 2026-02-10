@@ -1,0 +1,84 @@
+name: Deploy Railway
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-railway-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: deploy-railway
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')) &&
+      secrets.RAILWAY_TOKEN != '' &&
+      secrets.RAILWAY_PROJECT_ID != '' &&
+      secrets.RAILWAY_ENVIRONMENT_NAME != '' &&
+      secrets.RAILWAY_BACKEND_SERVICE_ID != '' &&
+      secrets.RAILWAY_FRONTEND_SERVICE_ID != ''
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_ENVIRONMENT_NAME: ${{ secrets.RAILWAY_ENVIRONMENT_NAME }}
+      RAILWAY_BACKEND_SERVICE_ID: ${{ secrets.RAILWAY_BACKEND_SERVICE_ID }}
+      RAILWAY_FRONTEND_SERVICE_ID: ${{ secrets.RAILWAY_FRONTEND_SERVICE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Railway CLI
+        run: npm install --global @railway/cli
+
+      - name: Deploy backend service
+        working-directory: backend
+        run: >
+          railway up --ci --detach
+          --project "${RAILWAY_PROJECT_ID}"
+          --environment "${RAILWAY_ENVIRONMENT_NAME}"
+          --service "${RAILWAY_BACKEND_SERVICE_ID}"
+
+      - name: Deploy frontend service
+        working-directory: frontend
+        run: >
+          railway up --ci --detach
+          --project "${RAILWAY_PROJECT_ID}"
+          --environment "${RAILWAY_ENVIRONMENT_NAME}"
+          --service "${RAILWAY_FRONTEND_SERVICE_ID}"
+
+  deploy-not-configured:
+    name: deploy-not-configured
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')) &&
+      (secrets.RAILWAY_TOKEN == '' ||
+      secrets.RAILWAY_PROJECT_ID == '' ||
+      secrets.RAILWAY_ENVIRONMENT_NAME == '' ||
+      secrets.RAILWAY_BACKEND_SERVICE_ID == '' ||
+      secrets.RAILWAY_FRONTEND_SERVICE_ID == '')
+    steps:
+      - name: Railway secrets missing
+        run: >
+          echo "Skipping deployment because Railway secrets are not fully configured."

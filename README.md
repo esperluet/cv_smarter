@@ -66,6 +66,7 @@ docker compose exec -T backend python -c "import docling; print('docling_ok')"
 
 ## Railway Deployment
 - Deployment guide: `docs/deploy-railway.md`
+- GitHub Actions CI/CD guide: `docs/github-actions-ci-cd.md`
 - Recommended topology in one Railway project:
   - Service `backend` (private)
   - Service `frontend` (public)
